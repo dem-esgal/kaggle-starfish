@@ -128,6 +128,7 @@ def compute_loss(p, targets, model):  # predictions, targets, model
 def build_targets(p, targets, model):
     # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
     det = model.module.model[-1] if is_parallel(model) else model.model[-1]  # Detect() module
+
     na, nt = det.na, targets.shape[0]  # number of anchors, targets
     tcls, tbox, indices, anch = [], [], [], []
     gain = torch.ones(7, device=targets.device)  # normalized to gridspace gain
@@ -142,7 +143,9 @@ def build_targets(p, targets, model):
 
     for i in range(det.nl):
         anchors = det.anchors[i]
+        anchors = anchors[:,[1,0]]
         gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
+        gain_xy = gain[[2, 3]]
 
         # Match targets to anchors
         t = targets * gain
@@ -155,9 +158,9 @@ def build_targets(p, targets, model):
 
             # Offsets
             gxy = t[:, 2:4]  # grid xy
-            gxi = gain[[2, 3]] - gxy  # inverse
-            j, k = ((gxy % 1. < g) & (gxy > 1.)).T
-            l, m = ((gxi % 1. < g) & (gxi > 1.)).T
+            gxi = gain_xy - gxy  # inverse
+            j, k = ((gxy % gain_xy < g * gain_xy) & (gxy > gain_xy)).T
+            l, m = ((gxi % gain_xy < g * gain_xy) & (gxi > gain_xy)).T
             j = torch.stack((torch.ones_like(j), j, k, l, m))
             t = t.repeat((5, 1, 1))[j]
             offsets = (torch.zeros_like(gxy)[None] + off[:, None])[j]
@@ -169,7 +172,7 @@ def build_targets(p, targets, model):
         b, c = t[:, :2].long().T  # image, class
         gxy = t[:, 2:4]  # grid xy
         gwh = t[:, 4:6]  # grid wh
-        gij = (gxy - offsets).long()
+        gij = (gxy - offsets * gain_xy).long()
         gi, gj = gij.T  # grid xy indices
 
         # Append
