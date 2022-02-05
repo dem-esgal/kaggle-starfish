@@ -377,6 +377,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                                                  save_dir=save_dir,
                                                  plots=plots and final_epoch,
                                                  iou_thres=opt.iou_thres,
+                                                 conf_thres=opt.conf_thres,
                                                  log_imgs=opt.log_imgs if wandb else 0)
 
             # Write
