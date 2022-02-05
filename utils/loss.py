@@ -143,7 +143,7 @@ def build_targets(p, targets, model):
 
     for i in range(det.nl):
         anchors = det.anchors[i]
-        anchors = anchors[:,[1,0]]
+        # anchors = anchors[:,[1,0]]
         gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
         gain_xy = gain[[2, 3]]
 
@@ -159,8 +159,8 @@ def build_targets(p, targets, model):
             # Offsets
             gxy = t[:, 2:4]  # grid xy
             gxi = gain_xy - gxy  # inverse
-            j, k = ((gxy % gain_xy < g * gain_xy) & (gxy > gain_xy)).T
-            l, m = ((gxi % gain_xy < g * gain_xy) & (gxi > gain_xy)).T
+            j, k = ((gxy % 1. < g) & (gxy > 1.)).T
+            l, m = ((gxi % 1. < g) & (gxi > 1.)).T
             j = torch.stack((torch.ones_like(j), j, k, l, m))
             t = t.repeat((5, 1, 1))[j]
             offsets = (torch.zeros_like(gxy)[None] + off[:, None])[j]
@@ -172,7 +172,7 @@ def build_targets(p, targets, model):
         b, c = t[:, :2].long().T  # image, class
         gxy = t[:, 2:4]  # grid xy
         gwh = t[:, 4:6]  # grid wh
-        gij = (gxy - offsets * gain_xy).long()
+        gij = (gxy - offsets).long()
         gi, gj = gij.T  # grid xy indices
 
         # Append

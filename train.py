@@ -523,7 +523,7 @@ if __name__ == '__main__':
 
     opt = parser.parse_args()
 
-    opt.conf_thres = 0.001
+    opt.conf_thres = 0.05
     opt.iou_thres = 0.65
     # Set DDP variables
     opt.total_batch_size = opt.batch_size
