@@ -9,12 +9,12 @@ warmup_bias_lr: 0.1  # warmup initial bias lr
 box: 0.05  # box loss gain
 cls: 0.5  # cls loss gain
 cls_pw: 1.0  # cls BCELoss positive_weight
-obj: 0.75  # obj loss gain (scale with pixels)
-obj_pw: 20.0  # obj BCELoss positive_weight
+obj: 0.9  # obj loss gain (scale with pixels)
+obj_pw: 8.0  # obj BCELoss positive_weight
 iou_t: 0.20  # IoU training threshold
 anchor_t: 4.0  # anchor-multiple threshold
 # anchors: 3  # anchors per output layer (0 to ignore)
-fl_gamma: 1.5  # later focal loss gamma (efficientDet default gamma=1.5)
+fl_gamma: 1  # later focal loss gamma (efficientDet default gamma=1.5)
 hsv_h: 0.1  # image HSV-Hue augmentation (fraction)
 hsv_s: 0.4  # image HSV-Saturation augmentation (fraction)
 hsv_v: 0.3  # image HSV-Value augmentation (fraction)
