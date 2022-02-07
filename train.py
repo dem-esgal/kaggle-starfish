@@ -515,7 +515,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--multi-scale', type=bool, default=True,  help='vary img-size +/- 50%%')
     parser.add_argument('--single-cls', type=bool, default=False, help='train as single-class dataset')
-    parser.add_argument('--adam', type=bool, default=False, help='use torch.optim.Adam() optimizer')
+    parser.add_argument('--adam', type=bool, default=True, help='use torch.optim.Adam() optimizer')
     parser.add_argument('--sync-bn', type=bool, default=False, help='use SyncBatchNorm, only available in DDP mode')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
     parser.add_argument('--log-imgs', type=int, default=16, help='number of images for W&B logging, max 100')
