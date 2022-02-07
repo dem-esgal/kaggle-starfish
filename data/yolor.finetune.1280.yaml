@@ -1,4 +1,4 @@
-lr0: 0.0005
+lr0: 0.01
 # initial learning rate (SGD=1E-2, Adam=1E-3)
 lrf: 0.2  # final OneCycleLR learning rate (lr0 * lrf)
 momentum: 0.937  # SGD momentum/Adam beta1
@@ -10,7 +10,7 @@ box: 0.05  # box loss gain
 cls: 0.5  # cls loss gain
 cls_pw: 1.0  # cls BCELoss positive_weight
 obj: 1.0  # obj loss gain (scale with pixels)
-obj_pw: 1.0  # obj BCELoss positive_weight
+obj_pw: 8.0  # obj BCELoss positive_weight
 iou_t: 0.20  # IoU training threshold
 anchor_t: 4.0  # anchor-multiple threshold
 # anchors: 3  # anchors per output layer (0 to ignore)
@@ -24,7 +24,7 @@ degrees: 60.0  # image rotation (+/- deg)
 translate: 0.4  # image translation (+/- fraction)
 scale: 0.0  # image scale (+/- gain)
 shear: 30.0  # image shear (+/- deg)
-perspective: 0.0005 # image perspective (+/- fraction), range 0-0.001
+perspective: 0.001 # image perspective (+/- fraction), range 0-0.001
 flipud: 0.0  # image flip up-down (probability)
 fliplr: 0.5  # image flip left-right (probability)
 mosaic: 0.95  # image mosaic (probability)
