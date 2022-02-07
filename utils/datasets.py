@@ -968,16 +968,7 @@ def load_mosaic(self, index):
     for i, index in enumerate(indices):
         # Load image
         img, _, (h, w) = load_image(self, index)
-        x = self.labels[index]
-        """
-        img, x = random_perspective(img, x,
-                                           degrees=0,
-                                           translate=0,
-                                           scale_up=self.hyp['scale_up'],
-                                           scale_down=self.hyp['scale_down'],
-                                           shear=0,
-                                           perspective=0)
-        """
+
         # place img in img4
         if i == 0:  # top left
             img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
@@ -998,6 +989,7 @@ def load_mosaic(self, index):
         padh = y1a - y1b
 
         # Labels
+        x = self.labels[index]
         labels = x.copy()
         if x.size > 0:  # Normalized xywh to pixel xyxy format
             labels[:, 1] = w * (x[:, 1] - x[:, 3] / 2) + padw
@@ -1235,7 +1227,7 @@ def random_perspective(img, targets=(), degrees=10, translate=.1, scale=.1, shea
     return img, targets
 
 
-def box_candidates(box1, box2, wh_thr=2, ar_thr=10, area_thr=0.3):  # box1(4,n), box2(4,n)
+def box_candidates(box1, box2, wh_thr=2, ar_thr=20, area_thr=0.1):  # box1(4,n), box2(4,n)
     # Compute candidate boxes: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
     w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
     w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
