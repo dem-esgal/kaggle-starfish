@@ -74,7 +74,7 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
 
     batch_size = min(batch_size, len(dataset))
     nw = min([os.cpu_count() // world_size, batch_size if batch_size > 1 else 0, workers])  # number of workers
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset) if rank != -1 else None
+    sampler = torch.utils.data.distributed.DistributedSampler(dataset) if rank != -1 else torch.utils.data.RandomSampler(dataset, False)
     dataloader = InfiniteDataLoader(dataset,
                                     batch_size=batch_size,
                                     num_workers=nw,
