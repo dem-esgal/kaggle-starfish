@@ -567,6 +567,23 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         else:
             # Load image
             img, (h0, w0), (h, w) = load_image(self, index)
+            alt_index = -1
+            if random.random() < hyp['mixup']:
+                alt_index = random.randint(0, len(self.labels) - 1)
+                img2, (h02, w02), (h2, w2) = load_image(self, alt_index)
+                img_mean = img.mean()
+                img2_mean = img2.mean()
+                mean_dif_up = (img2_mean / (img_mean + img2_mean))*1.2
+                mean_dif_low = (img2_mean / (img_mean + img2_mean))*0.8
+
+                if mean_dif_up > 0.9:
+                    mean_dif_up = 0.9
+
+                if mean_dif_low < 0.1:
+                    mean_dif_low = 0.1
+
+                r = np.random.uniform(mean_dif_low, mean_dif_up)  # mixup ratio, alpha=beta=8.0
+                img = (img * r + img2 * (1 - r)).astype(np.uint8)
 
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
@@ -583,6 +600,16 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 labels[:, 2] = ratio[1] * h * (x[:, 2] - x[:, 4] / 2) + pad[1]  # pad height
                 labels[:, 3] = ratio[0] * w * (x[:, 1] + x[:, 3] / 2) + pad[0]
                 labels[:, 4] = ratio[1] * h * (x[:, 2] + x[:, 4] / 2) + pad[1]
+            if alt_index >= 0:
+                x = self.labels[alt_index]
+                if x.size > 0:
+                    # Normalized xywh to pixel xyxy format
+                    labels2 = x.copy()
+                    labels2[:, 1] = ratio[0] * w2 * (x[:, 1] - x[:, 3] / 2) + pad[0]  # pad width
+                    labels2[:, 2] = ratio[1] * h2 * (x[:, 2] - x[:, 4] / 2) + pad[1]  # pad height
+                    labels2[:, 3] = ratio[0] * w2 * (x[:, 1] + x[:, 3] / 2) + pad[0]
+                    labels2[:, 4] = ratio[1] * h2 * (x[:, 2] + x[:, 4] / 2) + pad[1]
+                    labels = np.concatenate((labels, labels2), 0)
 
         if self.augment:
             # Augment imagespace
@@ -1136,7 +1163,7 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
         img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
     top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(img[:,:,0].mean(), img[:,:,1].mean(), img[:,:,2].mean())) # add border
     return img, ratio, (dw, dh)
 
 
@@ -1161,7 +1188,7 @@ def random_perspective(img, targets=(), degrees=10, translate=.1, scale=.1, shea
     R = np.eye(3)
     a = random.uniform(-degrees, degrees)
     # a += random.choice([-180, -90, 0, 90])  # add 90deg rotations to small rotations
-    s = random.uniform(1 - scale, 1 + scale)
+    s = random.uniform(1, 1 + scale)
     # s = 2 ** random.uniform(-scale, scale)
     R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
 
@@ -1179,9 +1206,9 @@ def random_perspective(img, targets=(), degrees=10, translate=.1, scale=.1, shea
     M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
     if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
         if perspective:
-            img = cv2.warpPerspective(img, M, dsize=(width, height), borderValue=(114, 114, 114))
+            img = cv2.warpPerspective(img, M, dsize=(width, height), borderValue=(img[:,:,0].mean(), img[:,:,1].mean(), img[:,:,2].mean()))
         else:  # affine
-            img = cv2.warpAffine(img, M[:2], dsize=(width, height), borderValue=(114, 114, 114))
+            img = cv2.warpAffine(img, M[:2], dsize=(width, height), borderMode=cv2.BORDER_REPLICATE)#borderValue=(114, 114, 114))
 
     # Visualize
     # import matplotlib.pyplot as plt
@@ -1207,13 +1234,13 @@ def random_perspective(img, targets=(), degrees=10, translate=.1, scale=.1, shea
         xy = np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1))).reshape(4, n).T
 
         # # apply angle-based reduction of bounding boxes
-        # radians = a * math.pi / 180
-        # reduction = max(abs(math.sin(radians)), abs(math.cos(radians))) ** 0.5
-        # x = (xy[:, 2] + xy[:, 0]) / 2
-        # y = (xy[:, 3] + xy[:, 1]) / 2
-        # w = (xy[:, 2] - xy[:, 0]) * reduction
-        # h = (xy[:, 3] - xy[:, 1]) * reduction
-        # xy = np.concatenate((x - w / 2, y - h / 2, x + w / 2, y + h / 2)).reshape(4, n).T
+        radians = a * math.pi / 180
+        reduction = max(abs(math.sin(radians)), abs(math.cos(radians))) ** 0.5
+        x = (xy[:, 2] + xy[:, 0]) / 2
+        y = (xy[:, 3] + xy[:, 1]) / 2
+        w = (xy[:, 2] - xy[:, 0]) * reduction
+        h = (xy[:, 3] - xy[:, 1]) * reduction
+        xy = np.concatenate((x - w / 2, y - h / 2, x + w / 2, y + h / 2)).reshape(4, n).T
 
         # clip boxes
         xy[:, [0, 2]] = xy[:, [0, 2]].clip(0, width)
