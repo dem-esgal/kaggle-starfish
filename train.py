@@ -261,8 +261,9 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
     log_images = 10
 
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
-        model.train()
 
+        model.train()
+        
         # Update image weights (optional)
         if opt.image_weights:
             # Generate indices
@@ -369,7 +370,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                 ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride'])
             final_epoch = epoch + 1 == epochs
             if not opt.notest or final_epoch:  # Calculate mAP
-                if epoch >= 0 and epoch % 5 == 0:
+                if epoch >= 0:
                     results, maps, times = test.test(opt.data,
                                                  batch_size=batch_size*2,
                                                  imgsz=imgsz_test,
@@ -526,8 +527,8 @@ if __name__ == '__main__':
 
     opt = parser.parse_args()
 
-    opt.conf_thres = 0.05
-    opt.iou_thres = 0.65
+    opt.conf_thres = 0.15
+    opt.iou_thres = 0.6
     # Set DDP variables
     opt.total_batch_size = opt.batch_size
     opt.world_size = int(os.environ['WORLD_SIZE']) if 'WORLD_SIZE' in os.environ else 1

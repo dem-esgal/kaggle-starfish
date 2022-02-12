@@ -568,7 +568,8 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             # Load image
             img, (h0, w0), (h, w) = load_image(self, index)
             alt_index = -1
-            if random.random() < hyp['mixup']:
+
+            if self.augment and random.random() < hyp['mixup']:
                 alt_index = random.randint(0, len(self.labels) - 1)
                 img2, (h02, w02), (h2, w2) = load_image(self, alt_index)
                 img_mean = img.mean()
