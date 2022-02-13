@@ -261,6 +261,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
     log_images = 10
 
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
+        """
         model.train()
         
         # Update image weights (optional)
@@ -361,7 +362,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         # Scheduler
         lr = [x['lr'] for x in optimizer.param_groups]  # for tensorboard
         scheduler.step()
-
+        """
         # DDP process 0 or single-GPU
         if rank in [-1, 0]:
             # mAP
