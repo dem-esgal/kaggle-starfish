@@ -361,7 +361,6 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         # Scheduler
         lr = [x['lr'] for x in optimizer.param_groups]  # for tensorboard
         scheduler.step()
-
         # DDP process 0 or single-GPU
         if rank in [-1, 0]:
             # mAP
@@ -526,8 +525,8 @@ if __name__ == '__main__':
 
     opt = parser.parse_args()
 
-    opt.conf_thres = 0.15
-    opt.iou_thres = 0.55
+    opt.conf_thres = 0.25
+    opt.iou_thres = 0.3
     # Set DDP variables
     opt.total_batch_size = opt.batch_size
     opt.world_size = int(os.environ['WORLD_SIZE']) if 'WORLD_SIZE' in os.environ else 1

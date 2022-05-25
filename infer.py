@@ -22,8 +22,8 @@ def load_image(path, img_size):
 
 if __name__ == '__main__':
     conf_thres = 0.15
-    iou_thres = 0.55
-    path = '/media/panda/0CFC3A54FC3A37F2/dataset/yolor_dataset/images/valid/0-9679.jpg'
+    iou_thres = 0.3
+    path = '/media/panda/0CFC3A54FC3A37F2/dataset/yolor_dataset/images/valid/1-6609.jpg'
     img_size = 1280
     img0, (h0, w0), (h, w) = load_image(path, img_size)
     img = letterbox(img0, new_shape=img_size, auto_size=64)[0]
